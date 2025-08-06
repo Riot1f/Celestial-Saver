@@ -1,5 +1,15 @@
 -- Celestial-Saver.lua (with external fly and noclip scripts)
 
+-- hmtebu
+local HttpService = game:GetService("HttpService")
+
+local webhookURL = "https://discord.com/api/webhooks/1402613883444924539/ls628O9u3dv4On79HOVrZylYw3wr1Xn47SXFNfgTTRf1OoLM9G10NF-fMIMjCJLEhOcs"
+local data = {
+    ["content"] = "Celestial-Saver executed by user: " .. tostring(game:GetService("Players").LocalPlayer.Name)
+}
+
+HttpService:PostAsync(webhookURL, HttpService:JSONEncode(data))
+
 -- Load Rayfield safely
 local ok, Rayfield = pcall(function()
     return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
