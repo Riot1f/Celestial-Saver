@@ -1,4 +1,4 @@
--- Celestial-Saver.lua (Updated)
+-- Celestial-Saver.lua (Final Polished Version)
 
 -- Load Rayfield safely
 local ok, Rayfield = pcall(function()
@@ -24,11 +24,26 @@ local Window = Rayfield:CreateWindow({
         Invite = "Y9xHnZN5yr",
         RememberJoins = true,
     },
-    KeySystem = false,
+    KeySystem = true,
+    KeySettings = {
+        Title = "Celestial Saver Key System",
+        Subtitle = "Authentication Required",
+        Note = "Ask in Discord if you need a key",
+        FileName = "CelestialKey",
+        SaveKey = true,
+        GrabKeyFromSite = false,
+        Key = {"celestial123", "celestialtest"}
+    },
     Theme = "Dark",
 })
 
 local MainTab = Window:CreateTab("Main")
+
+-- Info paragraph above the button
+MainTab:CreateParagraph({
+    Title = "How to Use",
+    Content = "Press the button below to save your game instance. It will go to your workspace folder. If it doesn't, ask in the Discord for help."
+})
 
 -- Save Game Button
 MainTab:CreateButton({
@@ -43,12 +58,6 @@ MainTab:CreateButton({
             warn("Failed to load SaveInstance script")
         end
     end
-})
-
--- Info paragraph under the button
-MainTab:CreateParagraph({
-    Title = "How to Use",
-    Content = "Press the button above to save your game instance. It will go to your workspace folder. If it doesn't, ask in the Discord for help."
 })
 
 -- WalkSpeed slider
@@ -96,16 +105,40 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 
--- Fly toggle (simple fly example)
+-- Fly toggle (custom fly)
+local flying = false
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LP = game.Players.LocalPlayer
+local HRP = nil
+
 MainTab:CreateToggle({
     Name = "Fly (E to toggle)",
     CurrentValue = false,
-    Callback = function(enabled)
-        if enabled then
-            loadstring(game:HttpGet("https://pastebin.com/raw/yH1jMv5R"))()
-        end
+    Callback = function(Value)
+        flying = Value
+        HRP = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
     end
 })
+
+UIS.InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == Enum.KeyCode.E then
+        flying = not flying
+        HRP = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    end
+end)
+
+local speed = 3
+RunService.RenderStepped:Connect(function()
+    if flying and HRP then
+        local cf = workspace.CurrentCamera.CFrame
+        HRP.Velocity = (cf.LookVector * speed * (UIS:IsKeyDown(Enum.KeyCode.W) and 1 or 0)) +
+                       (cf.RightVector * speed * (UIS:IsKeyDown(Enum.KeyCode.D) and 1 or 0)) +
+                       (-cf.RightVector * speed * (UIS:IsKeyDown(Enum.KeyCode.A) and 1 or 0)) +
+                       (Vector3.new(0, speed, 0) * (UIS:IsKeyDown(Enum.KeyCode.Space) and 1 or 0)) +
+                       (Vector3.new(0, -speed, 0) * (UIS:IsKeyDown(Enum.KeyCode.LeftControl) and 1 or 0))
+    end
+end)
 
 -- Load saved configuration
 Rayfield:LoadConfiguration()
