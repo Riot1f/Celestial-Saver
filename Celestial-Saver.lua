@@ -4,7 +4,6 @@ pcall(function()
     local Players = game:GetService("Players")
     local LocalPlayer = Players.LocalPlayer
 
-    -- Track executions locally via file save (works if executor supports writefile/readfile)
     local folderName = "CelestialSaverConfig"
     local fileName = "ExecutionCount.txt"
     local count = 0
@@ -19,8 +18,15 @@ pcall(function()
 
     count = count + 1
 
-    -- Save updated count
     pcall(function()
+        -- Make sure folder exists or create it
+        if not isfolder then
+            warn("Executor does not support isfolder")
+        else
+            if not isfolder(folderName) then
+                makefolder(folderName)
+            end
+        end
         writefile(folderName .. "/" .. fileName, tostring(count))
     end)
 
@@ -49,28 +55,26 @@ pcall(function()
     end
 end)
 
--- Load Rayfield safely ONCE
-local ok, Rayfield = pcall(function()
-    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-end)
-if not ok or not Rayfield then
-    warn("Rayfield failed to load")
-    return
-end
-
 local HttpService = game:GetService("HttpService")
 local folderName = "CelestialSaverConfig"
 local keyFileName = "CelestialKey.txt"
 local timeFileName = "KeyTime.txt"
 
+-- Utility to read file safely
 local function readFileSafe(path)
     local success, result = pcall(function() return readfile(path) end)
     if success then return result end
     return nil
 end
 
+-- Utility to write file safely
 local function writeFileSafe(path, content)
     pcall(function() writefile(path, content) end)
+end
+
+-- Ensure folder exists for file ops
+if isfolder and not isfolder(folderName) then
+    makefolder(folderName)
 end
 
 local function isKeyValid(key)
@@ -83,13 +87,22 @@ local function isKeyExpired()
     local lastTime = tonumber(timeStr)
     if not lastTime then return true end
     local currentTime = os.time()
-    return (currentTime - lastTime) > 86400 -- 24 hours in seconds
+    return (currentTime - lastTime) > 86400
 end
 
 local storedKey = readFileSafe(folderName .. "/" .. keyFileName)
 local hasValidKey = storedKey and isKeyValid(storedKey) and not isKeyExpired()
 
--- Main GUI creation function
+-- Load Rayfield once here
+local ok, Rayfield = pcall(function()
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+if not ok or not Rayfield then
+    warn("Rayfield failed to load")
+    return
+end
+
+-- Main GUI creation function (pass Rayfield explicitly)
 local function createMainGui()
     local Window = Rayfield:CreateWindow({
         Name = "Celestial Saver",
@@ -111,13 +124,11 @@ local function createMainGui()
 
     local MainTab = Window:CreateTab("Main")
 
-    -- Info paragraph above the button
     MainTab:CreateParagraph({
         Title = "How to Use",
         Content = "Press the button below to save your game instance. It will go to your workspace folder. If it doesn't, ask in the Discord for help."
     })
 
-    -- Save Game Button
     MainTab:CreateButton({
         Name = "Save Game",
         Callback = function()
@@ -134,7 +145,6 @@ local function createMainGui()
 
     local MovementTab = Window:CreateTab("Movement")
 
-    -- WalkSpeed slider
     MovementTab:CreateSlider({
         Name = "WalkSpeed",
         Range = {16, 100},
@@ -147,7 +157,6 @@ local function createMainGui()
         end,
     })
 
-    -- JumpPower slider
     MovementTab:CreateSlider({
         Name = "JumpPower",
         Range = {50, 200},
@@ -160,7 +169,6 @@ local function createMainGui()
         end,
     })
 
-    -- Noclip toggle
     local noclipEnabled = false
     MovementTab:CreateToggle({
         Name = "Noclip",
@@ -173,7 +181,6 @@ local function createMainGui()
         end,
     })
 
-    -- Fly toggle
     local flyEnabled = false
     MovementTab:CreateToggle({
         Name = "Fly (E to toggle)",
@@ -187,9 +194,9 @@ local function createMainGui()
     })
 end
 
-if not hasValidKey then
-    -- Show the key prompt window
-    local Window = Rayfield:CreateWindow({
+-- Key prompt window function (does NOT destroy Rayfield, just hides window)
+local function createKeyPrompt()
+    local KeyWindow = Rayfield:CreateWindow({
         Name = "Celestial Saver - Key System",
         LoadingTitle = "Please enter your key",
         LoadingSubtitle = "Join Discord: https://discord.gg/Y9xHnZN5yr\nVisit: https://workink.net/22BW/Celestial Saver Key System",
@@ -209,15 +216,29 @@ if not hasValidKey then
             Callback = function(key)
                 if isKeyValid(key) then
                     writeFileSafe(folderName .. "/" .. timeFileName, tostring(os.time()))
-                    Rayfield:Destroy() -- destroy the key prompt window
-                    createMainGui() -- create the main GUI window
+                    -- Hide this key prompt window (Rayfield has no direct hide, so destroy and recreate main GUI)
+                    Rayfield:Destroy()
+                    -- Reload Rayfield and then create main GUI
+                    local ok2, newRayfield = pcall(function()
+                        return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+                    end)
+                    if not ok2 or not newRayfield then
+                        warn("Failed to reload Rayfield after key entry")
+                        return
+                    end
+                    Rayfield = newRayfield
+                    createMainGui()
                 else
                     warn("Invalid Key")
                 end
             end,
         },
     })
-else
-    -- Key is valid and not expired, load main GUI directly
+end
+
+-- Run either key prompt or main GUI
+if hasValidKey then
     createMainGui()
+else
+    createKeyPrompt()
 end
