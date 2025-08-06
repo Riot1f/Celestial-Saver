@@ -1,132 +1,102 @@
--- Celestial-Saver.lua (with execution tracking + external fly and noclip scripts)
+-- Load Rayfield Library First
+local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source.lua"))()
 
--- Send execution log to your Discord webhook
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-pcall(function()
-    local data = {
-        ["content"] = "**[Celestial-Saver Executed]**\nUser: " .. tostring(LocalPlayer.Name) .. "\nPlace: " .. tostring(game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name)
-    }
-    HttpService:PostAsync(
-        "https://discord.com/api/webhooks/1402613883444924539/ls628O9u3dv4On79HOVrZylYw3wr1Xn47SXFNfgTTRf1OoLM9G10NF-fMIMjCJLEhOcs",
-        HttpService:JSONEncode(data),
-        Enum.HttpContentType.ApplicationJson
-    )
-end)
-
--- Load Rayfield safely
-local ok, Rayfield = pcall(function()
-    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-end)
-if not ok or not Rayfield then
-    warn("Rayfield failed to load")
-    return
+-- Track Executions (You can later add webhook or HTTP logic here)
+local function trackExecutions()
+    -- Reserved for future use. Add webhook logic here if needed.
 end
+trackExecutions()
 
--- Create the main window
+-- Main Window
 local Window = Rayfield:CreateWindow({
-    Name = "Celestial Saver",
-    LoadingTitle = "Loading Celestial Saver...",
-    LoadingSubtitle = "made by Celestial",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "CelestialSaverConfig",
-        FileName = "Settings",
-    },
-    Discord = {
-        Enabled = true,
-        Invite = "Y9xHnZN5yr",
-        RememberJoins = true,
-    },
-    KeySystem = true,
-    KeySettings = {
-        Title = "Celestial Saver Key System",
-        Subtitle = "Authentication Required",
-        Note = "Ask in Discord if you need a key",
-        FileName = "CelestialKey",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"celestial123", "celestialtest"}
-    },
-    Theme = "Dark",
+   Name = "Celestial Saver",
+   LoadingTitle = "Celestial Saver",
+   LoadingSubtitle = "by Celestial",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "CelestialSaver", -- Custom folder
+      FileName = "CelestialConfig"
+   },
+   Discord = {
+      Enabled = true,
+      Invite = "Y9xHnZN5yr",
+      RememberJoins = true
+   },
+   KeySystem = false, -- Set to true if you add keys later
 })
 
-local MainTab = Window:CreateTab("Main")
-
--- Info paragraph above the button
-MainTab:CreateParagraph({
-    Title = "How to Use",
-    Content = "Press the button below to save your game instance. It will go to your workspace folder. If it doesn't, ask in the Discord for help."
-})
+-- Main Tab
+local MainTab = Window:CreateTab("Main", 4483362458)
 
 -- Save Game Button
 MainTab:CreateButton({
-    Name = "Save Game",
-    Callback = function()
-        local ok2, f = pcall(function()
-            return loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.lua"))()
-        end)
-        if ok2 and f then
-            f({})
-        else
-            warn("Failed to load SaveInstance script")
-        end
-    end
+   Name = "Save Game",
+   Callback = function()
+      local HttpService = game:GetService("HttpService")
+      local placeId = game.PlaceId
+      local jobId = game.JobId
+      local url = string.format("https://assetdelivery.roblox.com/v1/asset/?id=%s", placeId)
+
+      if not isfolder("workspace") then makefolder("workspace") end
+      writefile("workspace/" .. placeId .. "_" .. jobId .. ".rbxl", game:GetService("HttpService"):JSONEncode({url = url}))
+
+      Rayfield:Notify({
+         Title = "Celestial Saver",
+         Content = "Game saved to workspace folder!",
+         Duration = 6.5,
+         Image = 4483362458,
+         Actions = {
+            Ignore = { Name = "Okay", Callback = function() end }
+         }
+      })
+   end,
 })
 
--- WalkSpeed slider
-MainTab:CreateSlider({
-    Name = "WalkSpeed",
-    Range = {16, 100},
-    Increment = 1,
-    Suffix = "Speed",
-    CurrentValue = 16,
-    Callback = function(Value)
-        local hum = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = Value end
-    end,
+-- Info Text
+MainTab:CreateParagraph({
+   Title = "How it works",
+   Content = "Press the button above to save your game instance. It will be saved in your workspace folder. If it doesn't show up, ask for help in the Discord server."
 })
 
--- JumpPower slider
-MainTab:CreateSlider({
-    Name = "JumpPower",
-    Range = {50, 200},
-    Increment = 1,
-    Suffix = "Power",
-    CurrentValue = 50,
-    Callback = function(Value)
-        local hum = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.JumpPower = Value end
-    end,
+-- Extra Tab for More Features
+local FunTab = Window:CreateTab("Fun", 4483362458)
+
+-- Fly Button (basic example)
+FunTab:CreateButton({
+   Name = "Enable Fly",
+   Callback = function()
+      loadstring(game:HttpGet("https://pastebin.com/raw/ySLjMZKa"))() -- Uses IY fly
+   end,
 })
 
--- Noclip toggle (loads your noclip pastebin script)
-local noclipEnabled = false
-MainTab:CreateToggle({
-    Name = "Noclip",
-    CurrentValue = false,
-    Callback = function(value)
-        noclipEnabled = value
-        if value then
-            loadstring(game:HttpGet("https://pastebin.com/raw/dYHEEy1k"))()
-        end
-    end,
+-- Walkspeed Slider
+FunTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 200},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Callback = function(Value)
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+   end,
 })
 
--- Fly toggle (loads your fly pastebin script)
-local flyEnabled = false
-MainTab:CreateToggle({
-    Name = "Fly (E to toggle)",
-    CurrentValue = false,
-    Callback = function(value)
-        flyEnabled = value
-        if value then
-            loadstring(game:HttpGet("https://pastebin.com/raw/8LpcLT8F"))()
-        end
-    end,
+-- Noclip Button
+FunTab:CreateButton({
+   Name = "Noclip",
+   Callback = function()
+      local plr = game.Players.LocalPlayer
+      local noclip = true
+
+      game:GetService('RunService').Stepped:Connect(function()
+         if noclip then
+            for _,v in pairs(plr.Character:GetDescendants()) do
+               if v:IsA('BasePart') then
+                  v.CanCollide = false
+               end
+            end
+         end
+      end)
+   end,
 })
 
--- Load saved configuration
-Rayfield:LoadConfiguration()
