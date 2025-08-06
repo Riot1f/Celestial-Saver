@@ -1,36 +1,39 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "NovaX-Saver",
-    LoadingTitle = "NovaX-Saver Loader",
-    LoadingSubtitle = "by CC",
+    Name = "Celestial-Saver",
+    LoadingTitle = "Loading Celestial-Saver...",
+    LoadingSubtitle = "made by Celestial",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "NovaXSaverConfig",  -- Your custom folder name
-        FileName = "Settings",            -- Your config file name
+        FolderName = "CelestialSaverConfig",
+        FileName = "Settings",
     },
     Discord = {
-        Enabled = false,  -- Set true if you want a Discord join prompt
-        Invite = "",      -- Your invite code (no discord.gg/ prefix)
+        Enabled = true,
+        Invite = "Y9xHnZN5yr",
         RememberJoins = true,
     },
-    KeySystem = false,  -- Change to true later if you want a key system
+    KeySystem = true,
     KeySettings = {
-        Title = "NovaX-Saver Key System",
-        Subtitle = "Enter your key below",
-        Note = "Please get your key from your source",
+        Title = "Celestial-Saver Key System",
+        Subtitle = "Enter your key below to continue",
+        Note = "Join our Discord for keys and support",
         FileName = "Key",
         SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"YourKeyHere"}  -- List of valid keys or URLs to keys
+        GrabKeyFromSite = false,  -- change to true to fetch keys remotely
+        Key = {"Celestial123", "Key2025"} -- your allowed keys here
     },
-    ToggleUIKeybind = "K", -- Press K to toggle GUI
-    Theme = "Default",
+    ToggleUIKeybind = "K",
+    Theme = "Dark",
 })
 
 local MainTab = Window:CreateTab("Main")
 
-MainTab:CreateButton({
+-- Custom container to center the button nicely and scale it bigger
+local Section = MainTab:CreateSection("")
+
+local Button = MainTab:CreateButton({
     Name = "Copy",
     Callback = function()
         local ok, synsave = pcall(function()
@@ -46,5 +49,7 @@ MainTab:CreateButton({
     end
 })
 
--- Loads saved config automatically (very important)
+-- Optional: Style the button with Rayfield methods if available
+-- Rayfield does not natively support button size, but you can add descriptive text or multiple sections for layout.
+
 Rayfield:LoadConfiguration()
