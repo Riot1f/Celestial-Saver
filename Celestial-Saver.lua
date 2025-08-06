@@ -1,4 +1,4 @@
--- Celestial-Saver.lua (Cleaned + Organized)
+-- Celestial-Saver.lua (with external fly and noclip scripts)
 
 -- Load Rayfield safely
 local ok, Rayfield = pcall(function()
@@ -86,71 +86,33 @@ MainTab:CreateSlider({
     end,
 })
 
--- Noclip toggle
-local noclip = false
+-- Noclip toggle (loads your noclip pastebin script)
+local noclipEnabled = false
 MainTab:CreateToggle({
     Name = "Noclip",
     CurrentValue = false,
-    Callback = function(Value)
-        noclip = Value
-    end
-})
-game:GetService("RunService").Stepped:Connect(function()
-    if noclip and game.Players.LocalPlayer and game.Players.LocalPlayer.Character then
-        for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
+    Callback = function(value)
+        noclipEnabled = value
+        if value then
+            -- Load noclip script only when toggled on
+            loadstring(game:HttpGet("https://pastebin.com/raw/dYHEEy1k"))()
         end
-    end
-end)
+    end,
+})
 
--- Fly toggle using improved custom fly
-local flying = false
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local LP = game.Players.LocalPlayer
-local HRP
-
+-- Fly toggle (loads your fly pastebin script)
+local flyEnabled = false
 MainTab:CreateToggle({
     Name = "Fly (E to toggle)",
     CurrentValue = false,
-    Callback = function(Value)
-        flying = Value
-        HRP = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-    end
+    Callback = function(value)
+        flyEnabled = value
+        if value then
+            -- Load fly script only when toggled on
+            loadstring(game:HttpGet("https://pastebin.com/raw/8LpcLT8F"))()
+        end
+    end,
 })
-
-UIS.InputBegan:Connect(function(input, gpe)
-    if not gpe and input.KeyCode == Enum.KeyCode.E then
-        flying = not flying
-        HRP = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-    end
-end)
-
-local ctrl = {f = 0, b = 0, l = 0, r = 0}
-UIS.InputBegan:Connect(function(i, g)
-    if g then return end
-    if i.KeyCode == Enum.KeyCode.W then ctrl.f = 1 end
-    if i.KeyCode == Enum.KeyCode.S then ctrl.b = -1 end
-    if i.KeyCode == Enum.KeyCode.A then ctrl.l = -1 end
-    if i.KeyCode == Enum.KeyCode.D then ctrl.r = 1 end
-end)
-UIS.InputEnded:Connect(function(i)
-    if i.KeyCode == Enum.KeyCode.W then ctrl.f = 0 end
-    if i.KeyCode == Enum.KeyCode.S then ctrl.b = 0 end
-    if i.KeyCode == Enum.KeyCode.A then ctrl.l = 0 end
-    if i.KeyCode == Enum.KeyCode.D then ctrl.r = 0 end
-end)
-
-local flySpeed = 3
-RunService.RenderStepped:Connect(function()
-    if flying and HRP then
-        local cam = workspace.CurrentCamera
-        local moveVec = cam.CFrame.lookVector * ctrl.f + cam.CFrame.lookVector * ctrl.b + cam.CFrame.RightVector * ctrl.r + cam.CFrame.RightVector * ctrl.l
-        HRP.Velocity = moveVec.Unit * flySpeed
-    end
-end)
 
 -- Load saved configuration
 Rayfield:LoadConfiguration()
