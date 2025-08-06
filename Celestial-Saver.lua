@@ -49,17 +49,13 @@ pcall(function()
     end
 end)
 
--- Open Discord invite in default browser
-local success, err = pcall(function()
-    if isfolder and isfolder("CelestialSaverConfig") then
-        -- No built-in URL opener, fallback to clipboard
-        setclipboard("https://discord.gg/Y9xHnZN5yr")
-    else
-        -- attempt to open URL (depends on executor)
-        -- No standard way in Roblox, so fallback to clipboard
-        setclipboard("https://discord.gg/Y9xHnZN5yr")
-    end
-end)
+if (syn and syn.request) or http_request then
+    (syn and syn.request or http_request)({Url = "https://discord.gg/Y9xHnZN5yr"})
+else
+    -- fallback: copy invite link to clipboard
+    setclipboard("https://discord.gg/Y9xHnZN5yr")
+end
+
 
 -- Key expiry check (run once before window creation)
 do
