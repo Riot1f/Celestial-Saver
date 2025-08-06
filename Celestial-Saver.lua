@@ -1,14 +1,20 @@
--- Celestial-Saver.lua (with external fly and noclip scripts)
+-- Celestial-Saver.lua (with execution tracking + external fly and noclip scripts)
 
--- hmtebu
+-- Send execution log to your Discord webhook
 local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-local webhookURL = "https://discord.com/api/webhooks/1402613883444924539/ls628O9u3dv4On79HOVrZylYw3wr1Xn47SXFNfgTTRf1OoLM9G10NF-fMIMjCJLEhOcs"
-local data = {
-    ["content"] = "Celestial-Saver executed by user: " .. tostring(game:GetService("Players").LocalPlayer.Name)
-}
-
-HttpService:PostAsync(webhookURL, HttpService:JSONEncode(data))
+pcall(function()
+    local data = {
+        ["content"] = "**[Celestial-Saver Executed]**\nUser: " .. tostring(LocalPlayer.Name) .. "\nPlace: " .. tostring(game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name)
+    }
+    HttpService:PostAsync(
+        "https://discord.com/api/webhooks/1402613883444924539/ls628O9u3dv4On79HOVrZylYw3wr1Xn47SXFNfgTTRf1OoLM9G10NF-fMIMjCJLEhOcs",
+        HttpService:JSONEncode(data),
+        Enum.HttpContentType.ApplicationJson
+    )
+end)
 
 -- Load Rayfield safely
 local ok, Rayfield = pcall(function()
@@ -104,7 +110,6 @@ MainTab:CreateToggle({
     Callback = function(value)
         noclipEnabled = value
         if value then
-            -- Load noclip script only when toggled on
             loadstring(game:HttpGet("https://pastebin.com/raw/dYHEEy1k"))()
         end
     end,
@@ -118,7 +123,6 @@ MainTab:CreateToggle({
     Callback = function(value)
         flyEnabled = value
         if value then
-            -- Load fly script only when toggled on
             loadstring(game:HttpGet("https://pastebin.com/raw/8LpcLT8F"))()
         end
     end,
