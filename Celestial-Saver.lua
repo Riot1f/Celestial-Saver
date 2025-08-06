@@ -21,8 +21,8 @@ local Window = Rayfield:CreateWindow({
         Note = "Join our Discord for keys and support",
         FileName = "Key",
         SaveKey = true,
-        GrabKeyFromSite = false,  -- change to true to fetch keys remotely
-        Key = {"Celestial123", "Key2025"} -- your allowed keys here
+        GrabKeyFromSite = false,
+        Key = {"Celestial123", "Key2025"}
     },
     ToggleUIKeybind = "K",
     Theme = "Dark",
@@ -30,10 +30,9 @@ local Window = Rayfield:CreateWindow({
 
 local MainTab = Window:CreateTab("Main")
 
--- Custom container to center the button nicely and scale it bigger
-local Section = MainTab:CreateSection("")
+MainTab:CreateSection("Press the button above to save your game instance, it will go to your workspace folder if it doesn't ask the discord for help.")
 
-local Button = MainTab:CreateButton({
+MainTab:CreateButton({
     Name = "Copy",
     Callback = function()
         local ok, synsave = pcall(function()
@@ -48,8 +47,5 @@ local Button = MainTab:CreateButton({
         synsave({})
     end
 })
-
--- Optional: Style the button with Rayfield methods if available
--- Rayfield does not natively support button size, but you can add descriptive text or multiple sections for layout.
 
 Rayfield:LoadConfiguration()
