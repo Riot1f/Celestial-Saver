@@ -49,11 +49,6 @@ pcall(function()
     end
 end)
 
-if syn and syn.request then
-    syn.request({Url = "https://discord.gg/Y9xHnZN5yr"})
-elseif http_request then
-    http_request({Url = "https://discord.gg/Y9xHnZN5yr"})
-else
     -- fallback for environments that support 'setclipboard'
     setclipboard("https://discord.gg/Y9xHnZN5yr")
 end
