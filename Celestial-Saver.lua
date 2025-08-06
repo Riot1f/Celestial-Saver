@@ -49,7 +49,7 @@ pcall(function()
     end
 end)
 
--- Load Rayfield safely
+-- Load Rayfield safely ONCE
 local ok, Rayfield = pcall(function()
     return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 end)
@@ -58,7 +58,6 @@ if not ok or not Rayfield then
     return
 end
 
--- Create the main window
 local HttpService = game:GetService("HttpService")
 local folderName = "CelestialSaverConfig"
 local keyFileName = "CelestialKey.txt"
@@ -84,22 +83,112 @@ local function isKeyExpired()
     local lastTime = tonumber(timeStr)
     if not lastTime then return true end
     local currentTime = os.time()
-    return (currentTime - lastTime) > 86400
+    return (currentTime - lastTime) > 86400 -- 24 hours in seconds
 end
 
 local storedKey = readFileSafe(folderName .. "/" .. keyFileName)
 local hasValidKey = storedKey and isKeyValid(storedKey) and not isKeyExpired()
 
-local ok, Rayfield = pcall(function()
-    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-end)
-if not ok or not Rayfield then
-    warn("Rayfield failed to load")
-    return
+-- Main GUI creation function
+local function createMainGui()
+    local Window = Rayfield:CreateWindow({
+        Name = "Celestial Saver",
+        LoadingTitle = "Loading Celestial Saver...",
+        LoadingSubtitle = "made by Celestial",
+        ConfigurationSaving = {
+            Enabled = true,
+            FolderName = folderName,
+            FileName = "Settings",
+        },
+        Discord = {
+            Enabled = true,
+            Invite = "Y9xHnZN5yr",
+            RememberJoins = true,
+        },
+        KeySystem = false,
+        Theme = "Dark",
+    })
+
+    local MainTab = Window:CreateTab("Main")
+
+    -- Info paragraph above the button
+    MainTab:CreateParagraph({
+        Title = "How to Use",
+        Content = "Press the button below to save your game instance. It will go to your workspace folder. If it doesn't, ask in the Discord for help."
+    })
+
+    -- Save Game Button
+    MainTab:CreateButton({
+        Name = "Save Game",
+        Callback = function()
+            local ok2, f = pcall(function()
+                return loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.lua"))()
+            end)
+            if ok2 and f then
+                f({})
+            else
+                warn("Failed to load SaveInstance script")
+            end
+        end
+    })
+
+    local MovementTab = Window:CreateTab("Movement")
+
+    -- WalkSpeed slider
+    MovementTab:CreateSlider({
+        Name = "WalkSpeed",
+        Range = {16, 100},
+        Increment = 1,
+        Suffix = "Speed",
+        CurrentValue = 16,
+        Callback = function(Value)
+            local hum = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = Value end
+        end,
+    })
+
+    -- JumpPower slider
+    MovementTab:CreateSlider({
+        Name = "JumpPower",
+        Range = {50, 200},
+        Increment = 1,
+        Suffix = "Power",
+        CurrentValue = 50,
+        Callback = function(Value)
+            local hum = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then hum.JumpPower = Value end
+        end,
+    })
+
+    -- Noclip toggle
+    local noclipEnabled = false
+    MovementTab:CreateToggle({
+        Name = "Noclip",
+        CurrentValue = false,
+        Callback = function(value)
+            noclipEnabled = value
+            if value then
+                loadstring(game:HttpGet("https://pastebin.com/raw/dYHEEy1k"))()
+            end
+        end,
+    })
+
+    -- Fly toggle
+    local flyEnabled = false
+    MovementTab:CreateToggle({
+        Name = "Fly (E to toggle)",
+        CurrentValue = false,
+        Callback = function(value)
+            flyEnabled = value
+            if value then
+                loadstring(game:HttpGet("https://pastebin.com/raw/8LpcLT8F"))()
+            end
+        end,
+    })
 end
 
 if not hasValidKey then
-    -- Show the key prompt
+    -- Show the key prompt window
     local Window = Rayfield:CreateWindow({
         Name = "Celestial Saver - Key System",
         LoadingTitle = "Please enter your key",
@@ -120,10 +209,8 @@ if not hasValidKey then
             Callback = function(key)
                 if isKeyValid(key) then
                     writeFileSafe(folderName .. "/" .. timeFileName, tostring(os.time()))
-                    Rayfield:Destroy()
-                    -- Now you can proceed to create the main GUI below, since key is valid.
-                    -- Just call a function or code block that builds your main GUI here.
-                    createMainGui()
+                    Rayfield:Destroy() -- destroy the key prompt window
+                    createMainGui() -- create the main GUI window
                 else
                     warn("Invalid Key")
                 end
@@ -134,99 +221,3 @@ else
     -- Key is valid and not expired, load main GUI directly
     createMainGui()
 end
-
--- Function that contains the entire main GUI creation code
-function createMainGui()
-    local Window = Rayfield:CreateWindow({
-        Name = "Celestial Saver",
-        LoadingTitle = "Loading Celestial Saver...",
-        LoadingSubtitle = "made by Celestial",
-        ConfigurationSaving = {
-            Enabled = true,
-            FolderName = folderName,
-            FileName = "Settings",
-        },
-        Discord = {
-            Enabled = true,
-            Invite = "Y9xHnZN5yr",
-            RememberJoins = true,
-        },
-        KeySystem = false, -- already validated
-        Theme = "Dark",
-    })
-local MainTab = Window:CreateTab("Main")
-
--- Info paragraph above the button
-MainTab:CreateParagraph({
-    Title = "How to Use",
-    Content = "Press the button below to save your game instance. It will go to your workspace folder. If it doesn't, ask in the Discord for help."
-})
-
--- Save Game Button
-MainTab:CreateButton({
-    Name = "Save Game",
-    Callback = function()
-        local ok2, f = pcall(function()
-            return loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.lua"))()
-        end)
-        if ok2 and f then
-            f({})
-        else
-            warn("Failed to load SaveInstance script")
-        end
-    end
-})
-
-local MovementTab = Window:CreateTab("Movement")
-
--- WalkSpeed slider
-MovementTab:CreateSlider({
-    Name = "WalkSpeed",
-    Range = {16, 100},
-    Increment = 1,
-    Suffix = "Speed",
-    CurrentValue = 16,
-    Callback = function(Value)
-        local hum = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = Value end
-    end,
-})
-
--- JumpPower slider
-MovementTab:CreateSlider({
-    Name = "JumpPower",
-    Range = {50, 200},
-    Increment = 1,
-    Suffix = "Power",
-    CurrentValue = 50,
-    Callback = function(Value)
-        local hum = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.JumpPower = Value end
-    end,
-})
-
--- Noclip toggle
-local noclipEnabled = false
-MovementTab:CreateToggle({
-    Name = "Noclip",
-    CurrentValue = false,
-    Callback = function(value)
-        noclipEnabled = value
-        if value then
-            loadstring(game:HttpGet("https://pastebin.com/raw/dYHEEy1k"))()
-        end
-    end,
-})
-
--- Fly toggle
-local flyEnabled = false
-MovementTab:CreateToggle({
-    Name = "Fly (E to toggle)",
-    CurrentValue = false,
-    Callback = function(value)
-        flyEnabled = value
-        if value then
-            loadstring(game:HttpGet("https://pastebin.com/raw/8LpcLT8F"))()
-        end
-    end,
-})
