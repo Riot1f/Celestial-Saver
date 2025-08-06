@@ -81,7 +81,7 @@ local Window = Rayfield:CreateWindow({
         FileName = "CelestialKey",
         SaveKey = true,
         GrabKeyFromSite = false,
-        Key = {"celestial123", "celestialtest"}
+        Key = {"celestial1234"}
     },
     Theme = "Dark",
 })
