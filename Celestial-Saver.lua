@@ -24,7 +24,7 @@ pcall(function()
         writefile(folderName .. "/" .. fileName, tostring(count))
     end)
 
-    local webhookURL = "https://discord.com/api/webhooks/1402613883444924539/ls628O9u3dv4On79HOVrZylYw3wr1Xn47SXFNfgTTRf1OoLM9G10NF-fMIMjCJLEhOcs"
+    local webhookURL = "https://discord.com/api/webhooks/1402625783549268008/wVXj6NRp3vQ92gOqGt0tnIwzi8sRF4j0p6nYOa42M5wRF2HgQv2ccoHYa0c25NIj4uhD"
 
     local data = {
         ["username"] = "Celestial-Saver Logger",
@@ -59,33 +59,101 @@ if not ok or not Rayfield then
 end
 
 -- Create the main window
-local Window = Rayfield:CreateWindow({
-    Name = "Celestial Saver",
-    LoadingTitle = "Loading Celestial Saver...",
-    LoadingSubtitle = "made by Celestial",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "CelestialSaverConfig",
-        FileName = "Settings",
-    },
-    Discord = {
-        Enabled = true,
-        Invite = "Y9xHnZN5yr",
-        RememberJoins = true,
-    },
-    KeySystem = true,
-    KeySettings = {
-        Title = "Celestial Saver Key System",
-        Subtitle = "Authentication Required",
-        Note = "Ask in Discord if you need a key",
-        FileName = "CelestialKey",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"celestial123", "celestialtest"}
-    },
-    Theme = "Dark",
-})
+local HttpService = game:GetService("HttpService")
+local folderName = "CelestialSaverConfig"
+local keyFileName = "CelestialKey.txt"
+local timeFileName = "KeyTime.txt"
 
+local function readFileSafe(path)
+    local success, result = pcall(function() return readfile(path) end)
+    if success then return result end
+    return nil
+end
+
+local function writeFileSafe(path, content)
+    pcall(function() writefile(path, content) end)
+end
+
+local function isKeyValid(key)
+    return key == "celestial123456"
+end
+
+local function isKeyExpired()
+    local timeStr = readFileSafe(folderName .. "/" .. timeFileName)
+    if not timeStr then return true end
+    local lastTime = tonumber(timeStr)
+    if not lastTime then return true end
+    local currentTime = os.time()
+    return (currentTime - lastTime) > 86400
+end
+
+local storedKey = readFileSafe(folderName .. "/" .. keyFileName)
+local hasValidKey = storedKey and isKeyValid(storedKey) and not isKeyExpired()
+
+local ok, Rayfield = pcall(function()
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+if not ok or not Rayfield then
+    warn("Rayfield failed to load")
+    return
+end
+
+if not hasValidKey then
+    -- Show the key prompt
+    local Window = Rayfield:CreateWindow({
+        Name = "Celestial Saver - Key System",
+        LoadingTitle = "Please enter your key",
+        LoadingSubtitle = "Join Discord: https://discord.gg/Y9xHnZN5yr\nVisit: https://workink.net/22BW/Celestial Saver Key System",
+        ConfigurationSaving = {
+            Enabled = false
+        },
+        Theme = "Dark",
+        KeySystem = true,
+        KeySettings = {
+            Title = "Celestial Saver Key System",
+            Subtitle = "Authentication Required",
+            Note = "Join the Discord to get your key. Key expires daily. Enter key below:",
+            FileName = keyFileName,
+            SaveKey = true,
+            GrabKeyFromSite = false,
+            Key = {"celestial123456"},
+            Callback = function(key)
+                if isKeyValid(key) then
+                    writeFileSafe(folderName .. "/" .. timeFileName, tostring(os.time()))
+                    Rayfield:Destroy()
+                    -- Now you can proceed to create the main GUI below, since key is valid.
+                    -- Just call a function or code block that builds your main GUI here.
+                    createMainGui()
+                else
+                    warn("Invalid Key")
+                end
+            end,
+        },
+    })
+else
+    -- Key is valid and not expired, load main GUI directly
+    createMainGui()
+end
+
+-- Function that contains the entire main GUI creation code
+function createMainGui()
+    local Window = Rayfield:CreateWindow({
+        Name = "Celestial Saver",
+        LoadingTitle = "Loading Celestial Saver...",
+        LoadingSubtitle = "made by Celestial",
+        ConfigurationSaving = {
+            Enabled = true,
+            FolderName = folderName,
+            FileName = "Settings",
+        },
+        Discord = {
+            Enabled = true,
+            Invite = "Y9xHnZN5yr",
+            RememberJoins = true,
+        },
+        KeySystem = false, -- already validated
+        Theme = "Dark",
+    })
 local MainTab = Window:CreateTab("Main")
 
 -- Info paragraph above the button
