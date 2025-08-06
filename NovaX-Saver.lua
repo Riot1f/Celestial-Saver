@@ -1,33 +1,50 @@
-local success, RayfieldLib = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source"))()
-end)
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-if not success then
-    warn("Rayfield failed to load.")
-    return
-end
-
-local Window = RayfieldLib:CreateWindow({
+local Window = Rayfield:CreateWindow({
     Name = "NovaX-Saver",
+    LoadingTitle = "NovaX-Saver Loader",
+    LoadingSubtitle = "by CC",
     ConfigurationSaving = {
-        Enabled = false
-    }
+        Enabled = true,
+        FolderName = "NovaXSaverConfig",  -- Your custom folder name
+        FileName = "Settings",            -- Your config file name
+    },
+    Discord = {
+        Enabled = false,  -- Set true if you want a Discord join prompt
+        Invite = "",      -- Your invite code (no discord.gg/ prefix)
+        RememberJoins = true,
+    },
+    KeySystem = false,  -- Change to true later if you want a key system
+    KeySettings = {
+        Title = "NovaX-Saver Key System",
+        Subtitle = "Enter your key below",
+        Note = "Please get your key from your source",
+        FileName = "Key",
+        SaveKey = true,
+        GrabKeyFromSite = false,
+        Key = {"YourKeyHere"}  -- List of valid keys or URLs to keys
+    },
+    ToggleUIKeybind = "K", -- Press K to toggle GUI
+    Theme = "Default",
 })
 
-local Tab = Window:CreateTab("Main")
+local MainTab = Window:CreateTab("Main")
 
-Tab:CreateButton({
+MainTab:CreateButton({
     Name = "Copy",
     Callback = function()
-        local success, synsave = pcall(function()
+        local ok, synsave = pcall(function()
             return loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.lua"))()
         end)
 
-        if success and synsave then
-            local Options = {} -- Put options here if needed
-            synsave(Options)
-        else
-            warn("Failed to load SynSaveInstance.")
+        if not ok or not synsave then
+            warn("Failed to load SaveInstance script")
+            return
         end
+
+        synsave({})
     end
 })
+
+-- Loads saved config automatically (very important)
+Rayfield:LoadConfiguration()
