@@ -1,4 +1,4 @@
--- Celestial-Saver.lua (Final Polished Version)
+-- Celestial-Saver.lua (Cleaned + Organized)
 
 -- Load Rayfield safely
 local ok, Rayfield = pcall(function()
@@ -105,12 +105,12 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 
--- Fly toggle (custom fly)
+-- Fly toggle using improved custom fly
 local flying = false
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LP = game.Players.LocalPlayer
-local HRP = nil
+local HRP
 
 MainTab:CreateToggle({
     Name = "Fly (E to toggle)",
@@ -128,15 +128,27 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-local speed = 3
+local ctrl = {f = 0, b = 0, l = 0, r = 0}
+UIS.InputBegan:Connect(function(i, g)
+    if g then return end
+    if i.KeyCode == Enum.KeyCode.W then ctrl.f = 1 end
+    if i.KeyCode == Enum.KeyCode.S then ctrl.b = -1 end
+    if i.KeyCode == Enum.KeyCode.A then ctrl.l = -1 end
+    if i.KeyCode == Enum.KeyCode.D then ctrl.r = 1 end
+end)
+UIS.InputEnded:Connect(function(i)
+    if i.KeyCode == Enum.KeyCode.W then ctrl.f = 0 end
+    if i.KeyCode == Enum.KeyCode.S then ctrl.b = 0 end
+    if i.KeyCode == Enum.KeyCode.A then ctrl.l = 0 end
+    if i.KeyCode == Enum.KeyCode.D then ctrl.r = 0 end
+end)
+
+local flySpeed = 3
 RunService.RenderStepped:Connect(function()
     if flying and HRP then
-        local cf = workspace.CurrentCamera.CFrame
-        HRP.Velocity = (cf.LookVector * speed * (UIS:IsKeyDown(Enum.KeyCode.W) and 1 or 0)) +
-                       (cf.RightVector * speed * (UIS:IsKeyDown(Enum.KeyCode.D) and 1 or 0)) +
-                       (-cf.RightVector * speed * (UIS:IsKeyDown(Enum.KeyCode.A) and 1 or 0)) +
-                       (Vector3.new(0, speed, 0) * (UIS:IsKeyDown(Enum.KeyCode.Space) and 1 or 0)) +
-                       (Vector3.new(0, -speed, 0) * (UIS:IsKeyDown(Enum.KeyCode.LeftControl) and 1 or 0))
+        local cam = workspace.CurrentCamera
+        local moveVec = cam.CFrame.lookVector * ctrl.f + cam.CFrame.lookVector * ctrl.b + cam.CFrame.RightVector * ctrl.r + cam.CFrame.RightVector * ctrl.l
+        HRP.Velocity = moveVec.Unit * flySpeed
     end
 end)
 
