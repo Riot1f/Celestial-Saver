@@ -73,16 +73,72 @@ local Window = Rayfield:CreateWindow({
         Invite = "Y9xHnZN5yr",
         RememberJoins = true,
     },
-    KeySystem = true,
-    KeySettings = {
-        Title = "Celestial Saver Key System",
-        Subtitle = "Authentication Required",
-        Note = "Ask in Discord if you need a key",
-        FileName = "CelestialKey",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"celestial1234"}
-    },
+KeySystem = true,
+KeySettings = (function()
+    local keyFile = "CelestialKey"
+    local expiryFile = "CelestialKeyExpiry"
+    local expectedKey = "celestial123456"
+    local Rayfield = Rayfield  -- already loaded above
+
+    local function deleteKey()
+        pcall(function()
+            if isfile(keyFile) then delfile(keyFile) end
+            if isfile(expiryFile) then delfile(expiryFile) end
+        end)
+    end
+
+    -- Check expiry
+    local expired = false
+    pcall(function()
+        if isfile(expiryFile) then
+            local expiry = tonumber(readfile(expiryFile))
+            if expiry and os.time() > expiry then
+                expired = true
+            end
+        end
+    end)
+
+    if expired then
+        deleteKey()
+    end
+
+    -- If valid key already saved and not expired, skip prompt
+    local savedKey
+    pcall(function()
+        savedKey = readfile(keyFile)
+    end)
+
+    if savedKey == expectedKey and not expired then
+        return {Enabled = false}
+    end
+
+    -- Otherwise, require key entry
+    local valid = false
+    repeat
+        local userKey = Rayfield:Prompt({
+            Title = "Celestial Saver Key System",
+            SubTitle = "Authentication Required",
+            Note = "Join the Discord to get the key:\nhttps://workink.net/22BW/Celestial Saver Key System",
+            InputType = "Input",
+            PlaceholderText = "Enter key here",
+        })
+
+        if userKey == expectedKey then
+            valid = true
+            writefile(keyFile, userKey)
+            writefile(expiryFile, tostring(os.time() + 86400)) -- Expires in 1 day
+        else
+            Rayfield:Notify({
+                Title = "Invalid Key",
+                Content = "That key is incorrect. Please try again.",
+                Duration = 5,
+            })
+        end
+    until valid
+
+    return {Enabled = false}
+end)(),
+
     Theme = "Dark",
 })
 
