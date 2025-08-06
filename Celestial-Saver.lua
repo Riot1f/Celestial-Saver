@@ -58,34 +58,6 @@ if not ok or not Rayfield then
     return
 end
 
--- Create the main window
-local Window = Rayfield:CreateWindow({
-    Name = "Celestial Saver",
-    LoadingTitle = "Loading Celestial Saver...",
-    LoadingSubtitle = "made by Celestial",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "CelestialSaverConfig",
-        FileName = "Settings",
-    },
-    Discord = {
-        Enabled = true,
-        Invite = "Y9xHnZN5yr",
-        RememberJoins = true,
-    },
-    KeySystem = true,
-    KeySettings = {
-        Title = "Celestial Saver Key System",
-        Subtitle = "Authentication Required",
-        Note = "Ask in Discord if you need a key",
-        FileName = "CelestialKey",
-        SaveKey = true,
-        GrabKeyFromSite = false,
-        Key = {"celestial123", "celestialtest"}
-    },
-    Theme = "Dark",
-})
-
 local MainTab = Window:CreateTab("Main")
 
 -- Info paragraph above the button
