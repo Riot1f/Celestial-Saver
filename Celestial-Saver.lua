@@ -24,7 +24,7 @@ pcall(function()
         writefile(folderName .. "/" .. fileName, tostring(count))
     end)
 
-    local webhookURL = "https://discord.com/api/webhooks/1402613883444924539/ls628O9u3dv4On79HOVrZylYw3wr1Xn47SXFNfgTTRf1OoLM9G10NF-fMIMjCJLEhOcs"
+    local webhookURL = "https://discord.com/api/webhooks/1402625783549268008/wVXj6NRp3vQ92gOqGt0tnIwzi8sRF4j0p6nYOa42M5wRF2HgQv2ccoHYa0c25NIj4uhD"
 
     local data = {
         ["username"] = "Celestial-Saver Logger",
@@ -57,6 +57,34 @@ if not ok or not Rayfield then
     warn("Rayfield failed to load")
     return
 end
+
+-- Create the main window
+local Window = Rayfield:CreateWindow({
+    Name = "Celestial Saver",
+    LoadingTitle = "Loading Celestial Saver...",
+    LoadingSubtitle = "made by Celestial",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "CelestialSaverConfig",
+        FileName = "Settings",
+    },
+    Discord = {
+        Enabled = true,
+        Invite = "Y9xHnZN5yr",
+        RememberJoins = true,
+    },
+    KeySystem = true,
+    KeySettings = {
+        Title = "Celestial Saver Key System",
+        Subtitle = "Authentication Required",
+        Note = "Ask in Discord if you need a key",
+        FileName = "CelestialKey",
+        SaveKey = true,
+        GrabKeyFromSite = false,
+        Key = {"celestial123", "celestialtest"}
+    },
+    Theme = "Dark",
+})
 
 local MainTab = Window:CreateTab("Main")
 
