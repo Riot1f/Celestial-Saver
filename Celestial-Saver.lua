@@ -1,102 +1,116 @@
--- Load Rayfield Library First
-local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source.lua"))()
+--// Load Rayfield GUI Library
+local success, Rayfield = pcall(function()
+    return loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+end)
 
--- Track Executions (You can later add webhook or HTTP logic here)
-local function trackExecutions()
-    -- Reserved for future use. Add webhook logic here if needed.
+if not success or not Rayfield then
+    warn("Failed to load Rayfield")
+    return
 end
-trackExecutions()
 
--- Main Window
+--// Webhook Execution Logger (private)
+pcall(function()
+    local HttpService = game:GetService("HttpService")
+    local webhookURL = "https://discord.com/api/webhooks/1402613883444924539/ls628O9u3dv4On79HOVrZylYw3wr1Xn47SXFNfgTTRf1OoLM9G10NF-fMIMjCJLEhOcs" -- Replace with your actual webhook
+
+    local data = {
+        ["username"] = "Celestial-Saver Logger",
+        ["embeds"] = {{
+            ["title"] = "Celestial-Saver Executed",
+            ["description"] = "**Game:** " .. game.Name .. "\n**PlaceId:** " .. game.PlaceId .. "\n**JobId:** " .. game.JobId,
+            ["color"] = tonumber(0x00ffcc)
+        }}
+    }
+
+    local headers = {["Content-Type"] = "application/json"}
+    local body = HttpService:JSONEncode(data)
+    request = request or http_request or (syn and syn.request)
+    if request then
+        request({Url = webhookURL, Method = "POST", Headers = headers, Body = body})
+    end
+end)
+
+--// UI Setup
 local Window = Rayfield:CreateWindow({
-   Name = "Celestial Saver",
-   LoadingTitle = "Celestial Saver",
-   LoadingSubtitle = "by Celestial",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "CelestialSaver", -- Custom folder
-      FileName = "CelestialConfig"
-   },
-   Discord = {
-      Enabled = true,
-      Invite = "Y9xHnZN5yr",
-      RememberJoins = true
-   },
-   KeySystem = false, -- Set to true if you add keys later
+    Name = "Celestial-Saver",
+    LoadingTitle = "Celestial-Saver",
+    LoadingSubtitle = "by Celestial",
+    ConfigurationSaving = {
+        Enabled = false
+    },
+    Discord = {
+        Enabled = true,
+        Invite = "Y9xHnZN5yr",
+        RememberJoins = true
+    },
+    KeySystem = false -- can enable later
 })
 
--- Main Tab
+Rayfield:Notify({
+    Title = "Loaded",
+    Content = "Celestial-Saver has been initialized!",
+    Duration = 4,
+    Image = 4483362458
+})
+
+--// Main Tab
 local MainTab = Window:CreateTab("Main", 4483362458)
 
 -- Save Game Button
 MainTab:CreateButton({
-   Name = "Save Game",
-   Callback = function()
-      local HttpService = game:GetService("HttpService")
-      local placeId = game.PlaceId
-      local jobId = game.JobId
-      local url = string.format("https://assetdelivery.roblox.com/v1/asset/?id=%s", placeId)
-
-      if not isfolder("workspace") then makefolder("workspace") end
-      writefile("workspace/" .. placeId .. "_" .. jobId .. ".rbxl", game:GetService("HttpService"):JSONEncode({url = url}))
-
-      Rayfield:Notify({
-         Title = "Celestial Saver",
-         Content = "Game saved to workspace folder!",
-         Duration = 6.5,
-         Image = 4483362458,
-         Actions = {
-            Ignore = { Name = "Okay", Callback = function() end }
-         }
-      })
-   end,
+    Name = "Save Game",
+    Callback = function()
+        local DataModel = game:GetService("Workspace"):Clone()
+        DataModel.Parent = workspace
+        Rayfield:Notify({
+            Title = "Saved",
+            Content = "Game saved to workspace. If it didn't, ask in Discord.",
+            Duration = 4
+        })
+    end
 })
 
--- Info Text
+-- Info Section
 MainTab:CreateParagraph({
-   Title = "How it works",
-   Content = "Press the button above to save your game instance. It will be saved in your workspace folder. If it doesn't show up, ask for help in the Discord server."
+    Title = "How To Use",
+    Content = "Press the button **above** to save your game instance. It will go to your Workspace folder. If it doesn’t, ask in the Discord for help."
 })
 
--- Extra Tab for More Features
-local FunTab = Window:CreateTab("Fun", 4483362458)
+-- Movement Tab
+local MovementTab = Window:CreateTab("Movement", 4483362458)
 
--- Fly Button (basic example)
-FunTab:CreateButton({
-   Name = "Enable Fly",
-   Callback = function()
-      loadstring(game:HttpGet("https://pastebin.com/raw/ySLjMZKa"))() -- Uses IY fly
-   end,
+-- Fly
+MovementTab:CreateButton({
+    Name = "Enable Fly",
+    Callback = function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/MHE1cbWF"))() -- Example Fly Script
+    end
 })
 
 -- Walkspeed Slider
-FunTab:CreateSlider({
-   Name = "WalkSpeed",
-   Range = {16, 200},
-   Increment = 1,
-   Suffix = "Speed",
-   CurrentValue = 16,
-   Callback = function(Value)
-      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-   end,
+MovementTab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 100},
+    Increment = 1,
+    CurrentValue = 16,
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+    end
 })
 
--- Noclip Button
-FunTab:CreateButton({
-   Name = "Noclip",
-   Callback = function()
-      local plr = game.Players.LocalPlayer
-      local noclip = true
-
-      game:GetService('RunService').Stepped:Connect(function()
-         if noclip then
-            for _,v in pairs(plr.Character:GetDescendants()) do
-               if v:IsA('BasePart') then
-                  v.CanCollide = false
-               end
+-- Noclip
+MovementTab:CreateButton({
+    Name = "Enable Noclip",
+    Callback = function()
+        local noclip = true
+        game:GetService("RunService").Stepped:Connect(function()
+            if noclip then
+                for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                    end
+                end
             end
-         end
-      end)
-   end,
+        end)
+    end
 })
-
