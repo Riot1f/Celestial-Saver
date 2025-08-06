@@ -1,20 +1,49 @@
 --// Webhook Execution Logger (private)
 pcall(function()
     local HttpService = game:GetService("HttpService")
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+
+    -- Track executions locally via file save (works if executor supports writefile/readfile)
+    local folderName = "CelestialSaverConfig"
+    local fileName = "ExecutionCount.txt"
+    local count = 0
+
+    local success, content = pcall(function()
+        return readfile(folderName .. "/" .. fileName)
+    end)
+
+    if success and content then
+        count = tonumber(content) or 0
+    end
+
+    count = count + 1
+
+    -- Save updated count
+    pcall(function()
+        writefile(folderName .. "/" .. fileName, tostring(count))
+    end)
+
     local webhookURL = "https://discord.com/api/webhooks/1402613883444924539/ls628O9u3dv4On79HOVrZylYw3wr1Xn47SXFNfgTTRf1OoLM9G10NF-fMIMjCJLEhOcs"
 
     local data = {
         ["username"] = "Celestial-Saver Logger",
         ["embeds"] = {{
             ["title"] = "Celestial-Saver Executed",
-            ["description"] = "**Game:** " .. game.Name .. "\n**PlaceId:** " .. game.PlaceId .. "\n**JobId:** " .. game.JobId,
+            ["description"] = 
+                "**User:** " .. (LocalPlayer and LocalPlayer.Name or "Unknown") .. "\n" ..
+                "**Game:** " .. game.Name .. "\n" ..
+                "**PlaceId:** " .. game.PlaceId .. "\n" ..
+                "**JobId:** " .. game.JobId .. "\n" ..
+                "**Times Executed:** " .. count .. "\n" ..
+                "**Time Executed:** " .. os.date("%Y-%m-%d %H:%M:%S"),
             ["color"] = tonumber(0x00ffcc)
         }}
     }
 
     local headers = {["Content-Type"] = "application/json"}
     local body = HttpService:JSONEncode(data)
-    request = request or http_request or (syn and syn.request)
+    local request = request or http_request or (syn and syn.request)
     if request then
         request({Url = webhookURL, Method = "POST", Headers = headers, Body = body})
     end
