@@ -1,11 +1,16 @@
--- NovaX-Saver.lua
+local success, RayfieldLib = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source"))()
+end)
 
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+if not success then
+    warn("Rayfield failed to load.")
+    return
+end
 
-local Window = Rayfield:CreateWindow({
+local Window = RayfieldLib:CreateWindow({
     Name = "NovaX-Saver",
     ConfigurationSaving = {
-        Enabled = false,
+        Enabled = false
     }
 })
 
@@ -14,8 +19,15 @@ local Tab = Window:CreateTab("Main")
 Tab:CreateButton({
     Name = "Copy",
     Callback = function()
-        local SSI = loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.lua"))()
-        local Options = {} -- See https://luau.github.io/UniversalSynSaveInstance/api/SynSaveInstance for options
-        SSI(Options)
+        local success, synsave = pcall(function()
+            return loadstring(game:HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.lua"))()
+        end)
+
+        if success and synsave then
+            local Options = {} -- Put options here if needed
+            synsave(Options)
+        else
+            warn("Failed to load SynSaveInstance.")
+        end
     end
 })
