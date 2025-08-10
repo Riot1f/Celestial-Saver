@@ -49,10 +49,6 @@ pcall(function()
     end
 end)
 
-    -- fallback for environments that support 'setclipboard'
-    setclipboard("https://discord.gg/Y9xHnZN5yr")
-end
-
 -- Key expiry check (run once before window creation)
 do
     local keyFile = "CelestialSaverConfig/CelestialKey"
